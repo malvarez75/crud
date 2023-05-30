@@ -62,6 +62,13 @@ function App() {
     setTarea(texto)
     seterror(null)
   }
+
+  const canceledit = () => {
+    seterror(null)
+    seteditMode(false)
+    setidTarea('')
+    setTarea('')
+  }
   return (
     <div className='container mt-5'>
       <h1>Tareas</h1>
@@ -124,7 +131,7 @@ function App() {
                 {
                   editMode && <button 
                                 className='btn btn-danger btn-block'
-                                type='button'
+                                onClick={() => canceledit()}
                               >Cancelar</button>
                 }
               </div>
