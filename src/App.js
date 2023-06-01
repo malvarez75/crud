@@ -1,7 +1,6 @@
 import { isEmpty, size } from 'lodash'
-import React, { useState } from 'react'
-import shortid from 'shortid'
-
+import React, { useState, useEffect } from 'react'
+import { getcollection, addDocument, updateDocument, getDocument, deleteDocument } from "./actions";
 
 function App() {
   const [tarea, setTarea] = useState("")
@@ -9,6 +8,18 @@ function App() {
   const [editMode, seteditMode] = useState(false)
   const [idTarea, setidTarea] = useState("")
   const [error, seterror] = useState(null)
+
+  useEffect(() => {
+    (
+      async () => {
+        const result = await getcollection('coleccion_tareas')
+        if(result.statusResponse){
+          setListaTareas(result.data)
+        }
+      }
+    )()
+  }, [])
+  
 
   const validForm = () => {
     let isValid = true
@@ -20,34 +31,46 @@ function App() {
     }
     return isValid
   }
-  const addtask = (e) => {
+  const addtask = async (e) => {
     e.preventDefault()
     if (!validForm()){
       return
     }
     
-    const nuevaTarea = {
-      id: shortid.generate(),
-      name: tarea
+    const result = await addDocument('coleccion_tareas', {name : tarea})
+    if(!result.statusResponse){
+      seterror(result.data.error)
+      return
     }
-    setListaTareas([...listaTareas, nuevaTarea])
+
+    setListaTareas([...listaTareas, {id: result.data, name : tarea}])
     setTarea('')
   }
 
-  const savetask = (e) => {
+  const savetask = async (e) => {
     e.preventDefault()
     if (!validForm()){
       return
     }
+    const result = await updateDocument('coleccion_tareas', idTarea, {name: tarea})
+    if(!result.statusResponse){
+      seterror(result.data.error)
+      return
+    }
 
-    const TareasEditadas = listaTareas.map(item => item.id === idTarea ? {idTarea, name: tarea}: item)
+    const TareasEditadas = listaTareas.map(item => item.id === idTarea ? {id: idTarea, name: tarea}: item)
     setListaTareas(TareasEditadas)
     seteditMode(false)
     setTarea('')
     setidTarea('')
   }
 
-  const deletetask = (id) => {
+  const deletetask = async(id) => {
+    const result = await deleteDocument('coleccion_tareas', id)
+    if(!result.statusResponse){
+      seterror(result.data.error)
+      return
+    }
     const tareasFiltradas = listaTareas.filter(eletarea => eletarea.id !== id)
     setListaTareas(tareasFiltradas)
   }
